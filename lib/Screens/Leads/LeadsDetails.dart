@@ -24,6 +24,7 @@ import 'package:redefineerp/Screens/Leads/NotInterestedQuestions.dart';
 import 'package:redefineerp/Screens/Leads/VisitDoneQuestions.dart';
 import 'package:redefineerp/Screens/projectDetails/unit_screen.dart';
 import 'package:redefineerp/Widgets/FxCard.dart';
+import 'package:redefineerp/common/color_extensions.dart';
 import 'package:redefineerp/helpers/firebase_help.dart';
 import 'package:redefineerp/helpers/supabae_help.dart';
 import 'package:redefineerp/themes/constant.dart';
@@ -33,20 +34,21 @@ import 'package:redefineerp/themes/spacing.dart';
 import 'package:redefineerp/themes/textFile.dart';
 import 'package:redefineerp/themes/text_utils.dart';
 import 'package:redefineerp/themes/themes.dart';
+import 'package:redefineerp/util/number_formater.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class LeadsDetailsScreen extends StatefulWidget {
-  const LeadsDetailsScreen({required this.leadDetails, this.callLogEntries, super.key});
+class UnitDetailsScreen extends StatefulWidget {
+  const UnitDetailsScreen({required this.leadDetails, this.callLogEntries, super.key});
   final leadDetails;
 final callLogEntries;
   @override
-  State<LeadsDetailsScreen> createState() =>
-      _LeadsDetailsScreenState(callLogEntries: callLogEntries);
+  State<UnitDetailsScreen> createState() =>
+      _UnitDetailsScreenState(callLogEntries: callLogEntries);
 }
 
-class _LeadsDetailsScreenState extends State<LeadsDetailsScreen>
+class _UnitDetailsScreenState extends State<UnitDetailsScreen>
     with SingleTickerProviderStateMixin {
-  _LeadsDetailsScreenState({required this.callLogEntries});
+  _UnitDetailsScreenState({required this.callLogEntries});
   Iterable<CallLogEntry> callLogEntries = <CallLogEntry>[];
 
   TabController? _tabController;
@@ -133,13 +135,17 @@ class _LeadsDetailsScreenState extends State<LeadsDetailsScreen>
 
   _callNumber() async {
     print('res issx ');
-    var number = '91${widget.leadDetails['Mobile']}'; //set the number here
+
+    var number = '91${widget.leadDetails?.data()?.containsKey('customerDetailsObj') == true &&
+    (widget.leadDetails!['customerDetailsObj'] as Map).containsKey('phoneNo1')
+    ? widget.leadDetails!['customerDetailsObj']['phoneNo1']
+    : 0}'; //set the number here
     bool? res = await FlutterPhoneDirectCaller.callNumber(number);
     print('res is ${res}');
   }
 
   Widget build(BuildContext context) {
-    print('data1 ${widget.leadDetails.id}');
+    print('data1 ${widget.leadDetails.id} ==> ${widget.leadDetails['customerDetailsObj']['phoneNo1']}');
     const TextStyle mono = TextStyle(fontFamily: 'monospace');
     final List<Widget> CallLogChildren = <Widget>[];
     // for (CallLogEntry entry in callLogEntries) {
@@ -158,7 +164,7 @@ class _LeadsDetailsScreenState extends State<LeadsDetailsScreen>
     //   print('SIM NAME   : ${entry.simDisplayName}');
     //   print('-------------------------------------');
     // }
-     var filteredCallLogs = callLogEntries.where((log) => log.number == '+91${widget.leadDetails['Mobile']}').toList();
+     var filteredCallLogs = callLogEntries.where((log) => log.number == '+91${widget.leadDetails['customerDetailsObj']['phoneNo1']}').toList();
      // Query call logs from Supabase
 DbSupa.instance.getLeadCallLogs(controller2.currentUserObj['orgId'], widget.leadDetails.id).then((existingCallLogs){
 
@@ -236,240 +242,441 @@ DbQuery.instanace.updateCallDuration(controller2.currentUserObj['orgId'], widget
     }
     return Scaffold(
          backgroundColor: const Color(0xff0D0D0D),  
-      body: Padding(
-        padding: FxSpacing.top(28),
-        child: Column(
-          children: [
-            FxContainer(
-              color: const Color(0xff0D0D0D),
-              child: Row(
-                children: [
-                  InkWell(
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  FxSpacing.width(8),
-                  // FxContainer.rounded(
-                  //   paddingAll: 0,
-                  //   child: Image(
-                  //     width: 40,
-                  //     height: 40,
-                  //     image: AssetImage(chat.image),
-                  //   ),
-                  // ),
-                  FxSpacing.width(12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text( widget.leadDetails['Name'],style: appLightTheme.bodyMedium.copyWith(fontSize: 18)),
-                    
-                        FxSpacing.height(2),
-                        Row(
-                          children: [
-                            FxContainer.rounded(
-                              paddingAll: 3,
-                              color: appLightTheme.groceryPrimary,
-                              child: Container(),
-                            ),
-                            FxSpacing.width(4),
-                            FxText.bodySmall(
-                              widget.leadDetails['Mobile'],
-                              color:  Get.theme.onPrimary,
-                              xMuted: true,
-                            ),
-                          ],
-                        ),
-                        FxSpacing.height(2),
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.start,
-                        //   crossAxisAlignment: CrossAxisAlignment.center,
-                        //   children: <Widget>[
-                        //     FxProgressBar(
-                        //         width: 100,
-                        //         height: 5,
-                        //         activeColor: appLightTheme.medicarePrimary,
-                        //         inactiveColor: appLightTheme.medicarePrimary
-                        //             .withAlpha(100),
-                        //         progress: 0.6),
-                        //     // FxSpacing.width(20),
-                        //     // FxText.bodySmall(" 4 Stars",
-                        //     //     fontWeight: 500, height: 1),
-                        //   ],
-                        // ),
-                      ],
-                    ),
-                  ),
-                  FxSpacing.width(16),
-              
-                  // FxContainer.rounded(
-                  //     color: appLightTheme.medicarePrimary,
-                  //     paddingAll: 8,
-                  //     child: Icon(
-                  //       Icons.videocam_rounded,
-                  //       color: appLightTheme.medicareOnPrimary,
-                  //       size: 16,
-                  //     )),
-                  // FxSpacing.width(8),
-                  InkWell(
-                    onTap: () {
-                      _callNumber();
-                    },
-                    child: FxContainer.rounded(
-                      color: Color(0xff58423B),
-                      paddingAll: 8,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: FxSpacing.top(28),
+          child: Column(
+            children: [
+              FxContainer(
+                color: const Color(0xff0D0D0D),
+                child: Row(
+                  children: [
+                    InkWell(
                       child: Icon(
-                        Icons.call,
-                        color: Get.theme.onPrimary,
-                        size: 16,
+                        Icons.arrow_back_ios,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    FxSpacing.width(0),
+                    // FxContainer.rounded(
+                    //   paddingAll: 0,
+                    //   child: Image(
+                    //     width: 40,
+                    //     height: 40,
+                    //     image: AssetImage(chat.image),
+                    //   ),
+                    // ),
+                    FxSpacing.width(12),
+                      Container(
+                  margin: FxSpacing.right(8
+                  ),
+                // height: 55,
+                width: 55,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: TColor.gray70.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                   
+
+                    Text(
+                      widget.leadDetails['unit_no'],
+                      style: TextStyle(
+                          color: TColor.gray30,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500),
+                    ),
+                     Text(
+                      "Unit",
+                      style: TextStyle(
+                          color: TColor.gray30,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+           
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text( widget.leadDetails['customerDetailsObj']['customerName1'],style: appLightTheme.bodyMedium.copyWith(fontSize: 18)),
+                      
+                          FxSpacing.height(2),
+                          Row(
+                            children: [
+                              FxContainer.rounded(
+                                paddingAll: 3,
+                                color: appLightTheme.groceryPrimary,
+                                child: Container(),
+                              ),
+                              FxSpacing.width(4),
+                              FxText.bodySmall(
+                                widget.leadDetails['customerDetailsObj']['phoneNo1'],
+                                color:  Get.theme.onPrimary,
+                                xMuted: true,
+                              ),
+                            ],
+                          ),
+                          FxSpacing.height(2),
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.start,
+                          //   crossAxisAlignment: CrossAxisAlignment.center,
+                          //   children: <Widget>[
+                          //     FxProgressBar(
+                          //         width: 100,
+                          //         height: 5,
+                          //         activeColor: appLightTheme.medicarePrimary,
+                          //         inactiveColor: appLightTheme.medicarePrimary
+                          //             .withAlpha(100),
+                          //         progress: 0.6),
+                          //     // FxSpacing.width(20),
+                          //     // FxText.bodySmall(" 4 Stars",
+                          //     //     fontWeight: 500, height: 1),
+                          //   ],
+                          // ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    FxSpacing.width(16),
+                
+                    // FxContainer.rounded(
+                    //     color: appLightTheme.medicarePrimary,
+                    //     paddingAll: 8,
+                    //     child: Icon(
+                    //       Icons.videocam_rounded,
+                    //       color: appLightTheme.medicareOnPrimary,
+                    //       size: 16,
+                    //     )),
+                    // FxSpacing.width(8),
+                    InkWell(
+                      onTap: () {
+                        _callNumber();
+                      },
+                      child: FxContainer.rounded(
+                        color: Color(0xff58423B),
+                        paddingAll: 8,
+                        child: Icon(
+                          Icons.call,
+                          color: Get.theme.onPrimary,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 4.0),
-                    child: Row(
-                      children: [
-                        for (var item in [
-                          {'label': 'New', 'value': 'new'},
-                          {'label': 'Followup', 'value': 'followup'},
-                          {'label': 'Visit Fixed', 'value': 'visitfixed'},
-                          {'label': 'Visit Done', 'value': 'visitdone'},
-                          {'label': 'Not Interested', 'value': 'notinterested'},
-                          {'label': 'Junk', 'value': 'junk'},
-                        ])
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: ActionChip(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero,
-                              ),
-                              padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
-                              backgroundColor:
-                                  widget.leadDetails['Status'] == item['value']
-                                      ? Color(0xff1C1C1E)
-                                      : Color(0xff1C1C1E),
-                              label: FxText.bodySmall(
-                                item['label']!,
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: widget.leadDetails['Status'] ==
-                                        item['value']
-                                    ? Get.theme.onPrimaryContainer
-                                    : Get.theme.onBackground,
-                              ),
-                              onPressed: () async => {
-                                controller.selNewStaus(
-                                    item, widget.leadDetails),
-                        print('new status is ${item['label']}'),
-   if(['followup', 'negotiation', 'visitfixed'].contains(item['value'])){
-           await showModalBottomSheet(
-                                  shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(9.0))),
-                                  backgroundColor: Colors.white,
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom: MediaQuery.of(context)
-                                            .viewInsets
-                                            .bottom,
-                                      ),
-                                      child: Form(
-                                        key: controller.taskKey,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            TaskCreationHead(item['label']),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 14.0,
-                                                  right: 14.0,
-                                                  top: 10.0),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  FxText.bodySmall(
-                                                    'Task Title ',
-                                                    color: Constant.softColors
-                                                        .green.onColor,
-                                                    fontWeight: 500,
-                                                  ),
-                                                  TextFormField(
-                                                    validator: controller
-                                                        .validateTaskTitle,
-                                                    controller:
-                                                        controller.taskTitle,
-                                                    onChanged: controller
-                                                        .validateTaskTitle,
-                                                    decoration:
-                                                        const InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Task Title...'),
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w500),
-                                                    autofocus: true,
-                                                  ),
-
-                                                  //  Container(
-                                                  //   height:
-                                                  //  child: null),
-                                                  Visibility(
-                                                    visible: (controller
-                                                            .assignedUserName
-                                                            .value ==
-                                                        "Assign someone"),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        // assign to
-
-                                                        // Due Date
-
-                                                        InkWell(
-                                                          onTap: () {
-                                                            print('check');
-                                                            ShowDatePickerCard(
-                                                                controller);
-                                                          },
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                child: Material(
-                                                                    type: MaterialType
-                                                                        .transparency,
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                      child: Row(
+                        children: [
+                          for (var item in [
+                            {'label': 'Unit Details', 'value': 'unit_details'},
+                            {'label': 'Customer Details', 'value': 'customer_details'},
+                            {'label': 'Cost Sheet', 'value': 'costsheet'},
+                            {'label': 'Payment Schedule', 'value': 'paymentschedule'},
+                            {'label': 'Documents', 'value': 'documents'},
+                            {'label': 'Brokerage', 'value': 'brokerage'},
+                          ])
+        
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ActionChip(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
+                                backgroundColor:
+                                    widget.leadDetails['status'] == item['value']
+                                        ? Color(0xff1C1C1E)
+                                        : Color(0xff1C1C1E),
+                                label: FxText.bodySmall(
+                                  item['label']!,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  color: widget.leadDetails['status'] ==
+                                          item['value']
+                                      ? Get.theme.onPrimaryContainer
+                                      : Get.theme.onBackground,
+                                ),
+                                onPressed: () async => {
+                                  controller.selNewStaus(
+                                      item, widget.leadDetails),
+                          print('new status is ${item['label']}'),
+           if(['followup', 'negotiation', 'visitfixed'].contains(item['value'])){
+             await showModalBottomSheet(
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(9.0))),
+                                    backgroundColor: Colors.white,
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) => Padding(
+                                        padding: EdgeInsets.only(
+                                          bottom: MediaQuery.of(context)
+                                              .viewInsets
+                                              .bottom,
+                                        ),
+                                        child: Form(
+                                          key: controller.taskKey,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TaskCreationHead(item['label']),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 14.0,
+                                                    right: 14.0,
+                                                    top: 10.0),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    FxText.bodySmall(
+                                                      'Task Title ',
+                                                      color: Constant.softColors
+                                                          .green.onColor,
+                                                      fontWeight: 500,
+                                                    ),
+                                                    TextFormField(
+                                                      validator: controller
+                                                          .validateTaskTitle,
+                                                      controller:
+                                                          controller.taskTitle,
+                                                      onChanged: controller
+                                                          .validateTaskTitle,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                              border: InputBorder
+                                                                  .none,
+                                                              hintText:
+                                                                  'Task Title...'),
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w500),
+                                                      autofocus: true,
+                                                    ),
+        
+                                                    //  Container(
+                                                    //   height:
+                                                    //  child: null),
+                                                    Visibility(
+                                                      visible: (controller
+                                                              .assignedUserName
+                                                              .value ==
+                                                          "Assign someone"),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          // assign to
+        
+                                                          // Due Date
+        
+                                                          InkWell(
+                                                            onTap: () {
+                                                              print('check');
+                                                              ShowDatePickerCard(
+                                                                  controller);
+                                                            },
+                                                            child: Row(
+                                                              children: [
+                                                                SizedBox(
+                                                                  child: Material(
+                                                                      type: MaterialType
+                                                                          .transparency,
+                                                                      child:
+                                                                          DottedBorder(
+                                                                        borderType:
+                                                                            BorderType
+                                                                                .Circle,
+                                                                        color: Get
+                                                                            .theme
+                                                                            .kLightGrayColor,
+                                                                        radius: const Radius
+                                                                            .circular(
+                                                                            27.0),
+                                                                        dashPattern: [
+                                                                          3,
+                                                                          3
+                                                                        ],
+                                                                        strokeWidth:
+                                                                            1,
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              6.0),
+                                                                          child:
+                                                                              Icon(
+                                                                            Icons
+                                                                                .calendar_month_outlined,
+                                                                            size:
+                                                                                18,
+                                                                            color: Get
+                                                                                .theme
+                                                                                .kLightGrayColor,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                      // child: CircleAvatar(
+                                                                      //   radius: 19,
+                                                                      //     backgroundColor: Get.theme.colorPrimaryDark,
+                                                                      //   child: CircleAvatar(
+                                                                      //     backgroundColor: Colors.white,
+                                                                      //     radius: 18,
+                                                                      //     child:   Icon(
+                                                                      //                                                     Icons.calendar_month_outlined,
+                                                                      //                                                     size: 18,
+                                                                      //                                                     color: Get.theme.kLightGrayColor,
+                                                                      //                                                   ),
+                                                                      //   ),
+                                                                      // ),
+                                                                      ),
+                                                                ),
+                                                                Obx(
+                                                                  () => Padding(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .only(
+                                                                            left:
+                                                                                8.0,
+                                                                            bottom:
+                                                                                4),
+                                                                    child: Column(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .start,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        SizedBox(
+                                                                          height:
+                                                                              16,
+                                                                          child:
+                                                                              Text(
+                                                                            'Due Date',
+                                                                            style: Get
+                                                                                .theme
+                                                                                .kSubTitle
+                                                                                .copyWith(color: Get.theme.kLightGrayColor),
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              22,
+                                                                          child: Text(
+                                                                              '${DateFormat('dd-MM-yy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(controller.selectedDateTime.value))}',
+                                                                              style:
+                                                                                  Get.theme.kNormalStyle.copyWith(color: Get.theme.kBadgeColor)),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                                //               () => ActionChip(
+                                                                // elevation: 0,
+                                                                // side: BorderSide(color: Get.theme.btnTextCol.withOpacity(0.1)),
+                                                                // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                                // backgroundColor: Get.theme.kBadgeColorBg,
+                                                                // label: Text(
+                                                                //   controller.assignedUserName.value,
+                                                                //   style: Get.theme.kSubTitle.copyWith(color: Get.theme.kBadgeColor),
+                                                                // ),
+                                                                // onPressed: () => {
+                                                                //       // Get.to(() => const ContactListPage()),
+                                                                //       showDialog(
+                                                                //               context: context,
+                                                                //               builder: (BuildContext context) => Dialog(
+                                                                // shape: RoundedRectangleBorder(
+                                                                //   borderRadius: BorderRadius.circular(8),
+                                                                // ),
+                                                                // child:  ContactListPage()))
+                                                                //     }
+                                                                //     )
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+        
+                                                    const SizedBox(
+                                                      height: 8,
+                                                    ),
+        
+                                                    Visibility(
+                                                        visible: (controller
+                                                                .attachmentsA
+                                                                .value
+                                                                .length >
+                                                            0),
+                                                        child: SizedBox(
+                                                            // height: 20,
+                                                            child: Column(
+                                                          children: [
+                                                            SizedBox(
+                                                              // height: 20,
+                                                              child: Text(
+                                                                'Attachments',
+                                                                style: Get.theme
+                                                                    .kSubTitle
+                                                                    .copyWith(
+                                                                        color: const Color(
+                                                                            0xff707070),
+                                                                        fontSize:
+                                                                            16),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 15),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      left: 2.0),
+                                                              child: Row(
+                                                                children: [
+                                                                  InkWell(
+                                                                    onTap:
+                                                                        () async {
+                                                                      // image = await picker.pickImage(
+                                                                      //     source: ImageSource.gallery);
+                                                                      // storageReference
+                                                                      //     .putFile(File(image!.path))
+                                                                      //     .then((value) async {
+                                                                      //   controller.attachmentsA.value
+                                                                      //       .add(await value.ref
+                                                                      //           .getDownloadURL());
+                                                                      //   print(
+                                                                      //       'Image URL: ${controller.attachmentsA.value}');
+                                                                      // });
+                                                                    },
                                                                     child:
                                                                         DottedBorder(
-                                                                      borderType:
-                                                                          BorderType
-                                                                              .Circle,
+                                                                      // borderType: BorderType.Circle,
                                                                       color: Get
                                                                           .theme
                                                                           .kLightGrayColor,
@@ -477,671 +684,638 @@ DbQuery.instanace.updateCallDuration(controller2.currentUserObj['orgId'], widget
                                                                           .circular(
                                                                           27.0),
                                                                       dashPattern: [
-                                                                        3,
-                                                                        3
+                                                                        6,
+                                                                        8
                                                                       ],
                                                                       strokeWidth:
-                                                                          1,
+                                                                          1.5,
                                                                       child:
                                                                           Padding(
                                                                         padding: const EdgeInsets
                                                                             .all(
-                                                                            6.0),
+                                                                            24.0),
                                                                         child:
                                                                             Icon(
                                                                           Icons
-                                                                              .calendar_month_outlined,
+                                                                              .add,
                                                                           size:
-                                                                              18,
+                                                                              22,
                                                                           color: Get
                                                                               .theme
                                                                               .kLightGrayColor,
                                                                         ),
                                                                       ),
-                                                                    )
-                                                                    // child: CircleAvatar(
-                                                                    //   radius: 19,
-                                                                    //     backgroundColor: Get.theme.colorPrimaryDark,
-                                                                    //   child: CircleAvatar(
-                                                                    //     backgroundColor: Colors.white,
-                                                                    //     radius: 18,
-                                                                    //     child:   Icon(
-                                                                    //                                                     Icons.calendar_month_outlined,
-                                                                    //                                                     size: 18,
-                                                                    //                                                     color: Get.theme.kLightGrayColor,
-                                                                    //                                                   ),
-                                                                    //   ),
-                                                                    // ),
                                                                     ),
-                                                              ),
-                                                              Obx(
-                                                                () => Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .only(
-                                                                          left:
-                                                                              8.0,
-                                                                          bottom:
-                                                                              4),
-                                                                  child: Column(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .start,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      SizedBox(
-                                                                        height:
-                                                                            16,
-                                                                        child:
-                                                                            Text(
-                                                                          'Due Date',
-                                                                          style: Get
-                                                                              .theme
-                                                                              .kSubTitle
-                                                                              .copyWith(color: Get.theme.kLightGrayColor),
-                                                                        ),
-                                                                      ),
-                                                                      SizedBox(
-                                                                        height:
-                                                                            22,
-                                                                        child: Text(
-                                                                            '${DateFormat('dd-MM-yy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(controller.selectedDateTime.value))}',
-                                                                            style:
-                                                                                Get.theme.kNormalStyle.copyWith(color: Get.theme.kBadgeColor)),
-                                                                      ),
-                                                                    ],
                                                                   ),
-                                                                ),
-                                                              )
-                                                              //               () => ActionChip(
-                                                              // elevation: 0,
-                                                              // side: BorderSide(color: Get.theme.btnTextCol.withOpacity(0.1)),
-                                                              // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                              // backgroundColor: Get.theme.kBadgeColorBg,
-                                                              // label: Text(
-                                                              //   controller.assignedUserName.value,
-                                                              //   style: Get.theme.kSubTitle.copyWith(color: Get.theme.kBadgeColor),
-                                                              // ),
-                                                              // onPressed: () => {
-                                                              //       // Get.to(() => const ContactListPage()),
-                                                              //       showDialog(
-                                                              //               context: context,
-                                                              //               builder: (BuildContext context) => Dialog(
-                                                              // shape: RoundedRectangleBorder(
-                                                              //   borderRadius: BorderRadius.circular(8),
-                                                              // ),
-                                                              // child:  ContactListPage()))
-                                                              //     }
-                                                              //     )
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-
-                                                  const SizedBox(
-                                                    height: 8,
-                                                  ),
-
-                                                  Visibility(
+                                                                  Container(
+                                                                    height: 100,
+                                                                    child:
+                                                                        Container(
+                                                                      child: ListView.builder(
+                                                                          shrinkWrap: true,
+                                                                          scrollDirection: Axis.horizontal,
+                                                                          physics: const BouncingScrollPhysics(),
+                                                                          itemCount: controller.attachmentsA.length,
+                                                                          itemBuilder: (BuildContext context, int index) => Card(
+                                                                                  child: Image(
+                                                                                image: NetworkImage(controller.attachmentsA[index]),
+                                                                                // fit: BoxFit.fill,
+                                                                                width: 100,
+                                                                                height: 100,
+                                                                              ))),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ))),
+        
+                                                    Visibility(
                                                       visible: (controller
-                                                              .attachmentsA
-                                                              .value
-                                                              .length >
-                                                          0),
+                                                          .participants
+                                                          .value
+                                                          .isNotEmpty),
                                                       child: SizedBox(
-                                                          // height: 20,
-                                                          child: Column(
-                                                        children: [
-                                                          SizedBox(
-                                                            // height: 20,
-                                                            child: Text(
-                                                              'Attachments',
-                                                              style: Get.theme
-                                                                  .kSubTitle
+                                                        // height: 20,
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              'Participants',
+                                                              style: Get
+                                                                  .theme.kSubTitle
                                                                   .copyWith(
                                                                       color: const Color(
                                                                           0xff707070),
                                                                       fontSize:
                                                                           16),
                                                             ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 15),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                                    left: 2.0),
-                                                            child: Row(
-                                                              children: [
-                                                                InkWell(
-                                                                  onTap:
-                                                                      () async {
-                                                                    // image = await picker.pickImage(
-                                                                    //     source: ImageSource.gallery);
-                                                                    // storageReference
-                                                                    //     .putFile(File(image!.path))
-                                                                    //     .then((value) async {
-                                                                    //   controller.attachmentsA.value
-                                                                    //       .add(await value.ref
-                                                                    //           .getDownloadURL());
-                                                                    //   print(
-                                                                    //       'Image URL: ${controller.attachmentsA.value}');
-                                                                    // });
-                                                                  },
-                                                                  child:
-                                                                      DottedBorder(
-                                                                    // borderType: BorderType.Circle,
-                                                                    color: Get
-                                                                        .theme
-                                                                        .kLightGrayColor,
-                                                                    radius: const Radius
-                                                                        .circular(
-                                                                        27.0),
-                                                                    dashPattern: [
-                                                                      6,
-                                                                      8
-                                                                    ],
-                                                                    strokeWidth:
-                                                                        1.5,
-                                                                    child:
-                                                                        Padding(
-                                                                      padding: const EdgeInsets
-                                                                          .all(
-                                                                          24.0),
-                                                                      child:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .add,
-                                                                        size:
-                                                                            22,
-                                                                        color: Get
-                                                                            .theme
-                                                                            .kLightGrayColor,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Container(
-                                                                  height: 100,
-                                                                  child:
-                                                                      Container(
-                                                                    child: ListView.builder(
-                                                                        shrinkWrap: true,
-                                                                        scrollDirection: Axis.horizontal,
-                                                                        physics: const BouncingScrollPhysics(),
-                                                                        itemCount: controller.attachmentsA.length,
-                                                                        itemBuilder: (BuildContext context, int index) => Card(
-                                                                                child: Image(
-                                                                              image: NetworkImage(controller.attachmentsA[index]),
-                                                                              // fit: BoxFit.fill,
-                                                                              width: 100,
-                                                                              height: 100,
-                                                                            ))),
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                            const SizedBox(
+                                                              height: 8,
                                                             ),
-                                                          ),
-                                                        ],
-                                                      ))),
-
-                                                  Visibility(
-                                                    visible: (controller
-                                                        .participants
-                                                        .value
-                                                        .isNotEmpty),
-                                                    child: SizedBox(
-                                                      // height: 20,
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            'Participants',
-                                                            style: Get
-                                                                .theme.kSubTitle
-                                                                .copyWith(
-                                                                    color: const Color(
-                                                                        0xff707070),
-                                                                    fontSize:
-                                                                        16),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 8,
-                                                          ),
-                                                          SizedBox(
-                                                            width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width *
-                                                                1,
-                                                            child: Row(
-                                                              children: [
-                                                                InkWell(
-                                                                    onTap: () =>
-                                                                        {
-                                                                          // showDialog(
-                                                                          //     context: context,
-                                                                          //     builder: (BuildContext
-                                                                          //             context) =>
-                                                                          //         const ContactListDialogPage())
-                                                                        },
-                                                                    child:
-                                                                        DottedBorder(
-                                                                      borderType:
-                                                                          BorderType
-                                                                              .Circle,
-                                                                      color: Get
-                                                                          .theme
-                                                                          .kLightGrayColor,
-                                                                      radius: const Radius
-                                                                          .circular(
-                                                                          27.0),
-                                                                      dashPattern: [
-                                                                        3,
-                                                                        3
-                                                                      ],
-                                                                      strokeWidth:
-                                                                          1,
-                                                                      child:
-                                                                          Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            4.0),
-                                                                        child:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .add,
-                                                                          size:
-                                                                              15,
-                                                                          color: Get
-                                                                              .theme
-                                                                              .kLightGrayColor,
-                                                                        ),
-                                                                      ),
-                                                                    )),
-                                                                const SizedBox(
-                                                                  width: 4,
-                                                                ),
-                                                                Obx(
-                                                                  () =>
-                                                                      SizedBox(
-                                                                    height: MediaQuery.of(context)
-                                                                            .size
-                                                                            .height *
-                                                                        0.04,
-                                                                    width: MediaQuery.of(context)
-                                                                            .size
-                                                                            .width *
-                                                                        0.720,
-                                                                    child: ListView
-                                                                        .builder(
-                                                                      itemCount: controller
-                                                                          .participantsANew
-                                                                          .value
-                                                                          .length,
-                                                                      scrollDirection:
-                                                                          Axis.horizontal,
-                                                                      itemBuilder:
-                                                                          (context,
-                                                                              index) {
-                                                                        return Padding(
-                                                                          padding: const EdgeInsets
-                                                                              .only(
-                                                                              left: 3.0),
-                                                                          child:
-                                                                              SizedBox(
-                                                                            child:
-                                                                                Material(
-                                                                              type: MaterialType.transparency,
-                                                                              child: CircleAvatar(
-                                                                                backgroundColor: Get.theme.colorPrimaryDark,
-                                                                                radius: 14,
-                                                                                child: Text('${controller.participantsANew[index]['name'].substring(0, 2)}', style: const TextStyle(color: Colors.white, fontSize: 10)),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      },
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 15),
-
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      SingleChildScrollView(
-                                                        scrollDirection:
-                                                            Axis.horizontal,
-                                                        child: Row(
-                                                          children: [
-                                                            Visibility(
-                                                              visible: (controller
-                                                                      .assignedUserName
-                                                                      .value ==
-                                                                  "Assign someone"),
+                                                            SizedBox(
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  1,
                                                               child: Row(
                                                                 children: [
                                                                   InkWell(
-                                                                    onTap: () =>
-                                                                        {
-                                                                      // showDialog(
-                                                                      //     context: context,
-                                                                      //     builder: (BuildContext
-                                                                      //             context) =>
-                                                                      //         Dialog(
-                                                                      //             shape:
-                                                                      //                 RoundedRectangleBorder(
-                                                                      //               borderRadius:
-                                                                      //                   BorderRadius
-                                                                      //                       .circular(
-                                                                      //                           8),
-                                                                      //             ),
-                                                                      //             child:
-                                                                      //                 ContactListPage()))
-                                                                    },
-                                                                    child: Row(
-                                                                      children: [
-                                                                        Icon(
-                                                                          Icons
-                                                                              .person,
-                                                                          color: Get
-                                                                              .theme
-                                                                              .kLightGrayColor,
+                                                                      onTap: () =>
+                                                                          {
+                                                                            // showDialog(
+                                                                            //     context: context,
+                                                                            //     builder: (BuildContext
+                                                                            //             context) =>
+                                                                            //         const ContactListDialogPage())
+                                                                          },
+                                                                      child:
+                                                                          DottedBorder(
+                                                                        borderType:
+                                                                            BorderType
+                                                                                .Circle,
+                                                                        color: Get
+                                                                            .theme
+                                                                            .kLightGrayColor,
+                                                                        radius: const Radius
+                                                                            .circular(
+                                                                            27.0),
+                                                                        dashPattern: [
+                                                                          3,
+                                                                          3
+                                                                        ],
+                                                                        strokeWidth:
+                                                                            1,
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              4.0),
+                                                                          child:
+                                                                              Icon(
+                                                                            Icons
+                                                                                .add,
+                                                                            size:
+                                                                                15,
+                                                                            color: Get
+                                                                                .theme
+                                                                                .kLightGrayColor,
+                                                                          ),
                                                                         ),
-                                                                      ],
-                                                                    ),
-                                                                  ),
+                                                                      )),
                                                                   const SizedBox(
-                                                                    width: 20.0,
+                                                                    width: 4,
                                                                   ),
-                                                                  InkWell(
-                                                                    onTap: () =>
-                                                                        {
-                                                                      // FlutterDateTimePicker.DatePicker.showDateTimePicker(
-                                                                      //     context,
-                                                                      //     showTitleActions: true,
-                                                                      //     onChanged: (date) {
-                                                                      //   print(
-                                                                      //       'change ${date.millisecondsSinceEpoch} $date in time zone ${date.timeZoneOffset.inHours}');
-                                                                      // }, onConfirm: (date) {
-                                                                      //   controller.dateSelected =
-                                                                      //       date;
-                                                                      //   controller
-                                                                      //       .updateSelectedDate();
-                                                                      // }, currentTime: DateTime.now())
-                                                                    },
-                                                                    child: Icon(
-                                                                      Icons
-                                                                          .calendar_month_outlined,
-                                                                      color: Get
-                                                                          .theme
-                                                                          .kLightGrayColor,
+                                                                  Obx(
+                                                                    () =>
+                                                                        SizedBox(
+                                                                      height: MediaQuery.of(context)
+                                                                              .size
+                                                                              .height *
+                                                                          0.04,
+                                                                      width: MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          0.720,
+                                                                      child: ListView
+                                                                          .builder(
+                                                                        itemCount: controller
+                                                                            .participantsANew
+                                                                            .value
+                                                                            .length,
+                                                                        scrollDirection:
+                                                                            Axis.horizontal,
+                                                                        itemBuilder:
+                                                                            (context,
+                                                                                index) {
+                                                                          return Padding(
+                                                                            padding: const EdgeInsets
+                                                                                .only(
+                                                                                left: 3.0),
+                                                                            child:
+                                                                                SizedBox(
+                                                                              child:
+                                                                                  Material(
+                                                                                type: MaterialType.transparency,
+                                                                                child: CircleAvatar(
+                                                                                  backgroundColor: Get.theme.colorPrimaryDark,
+                                                                                  radius: 14,
+                                                                                  child: Text('${controller.participantsANew[index]['name'].substring(0, 2)}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        },
+                                                                      ),
                                                                     ),
-                                                                  ),
-                                                                  const SizedBox(
-                                                                    width: 20.0,
                                                                   ),
                                                                 ],
-                                                              ),
-                                                            ),
-                                                            InkWell(
-                                                              onTap: () => {
-                                                                // FlutterDateTimePicker.DatePicker.showDateTimePicker(context,
-                                                                //     showTitleActions: true,
-                                                                //     onChanged: (date) {
-                                                                //   print(
-                                                                //       'change ${date.millisecondsSinceEpoch} $date in time zone ${date.timeZoneOffset.inHours}');
-                                                                // }, onConfirm: (date) {
-                                                                //   // controller.dateSelected = date;
-                                                                //   // controller.updateSelectedDate();
-                                                                // }, currentTime: DateTime.now())
-                                                              },
-                                                              child: Icon(
-                                                                Icons
-                                                                    .flag_outlined,
-                                                                color: Get.theme
-                                                                    .kLightGrayColor,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 20.0,
-                                                            ),
-                                                            Visibility(
-                                                              visible: (!controller
-                                                                  .participants
-                                                                  .value
-                                                                  .isNotEmpty),
-                                                              child: InkWell(
-                                                                onTap: () => {
-                                                                  showDialog(
-                                                                      context:
-                                                                          context,
-                                                                      builder: (BuildContext
-                                                                              context) =>
-                                                                          const ContactListDialogPage())
-                                                                },
-                                                                child: Icon(
-                                                                  Icons
-                                                                      .people_alt_outlined,
-                                                                  color: Get
-                                                                      .theme
-                                                                      .kLightGrayColor,
-                                                                ),
                                                               ),
                                                             ),
                                                           ],
                                                         ),
                                                       ),
-                                                      InkWell(
-                                                          onTap: () => {
-                                                                controller
-                                                                    .validationSuccess
-                                                                    .value = false,
-                                                                // print(
-                                                                //     controller.validationSuccess.value),
-                                                                controller
-                                                                    .checkTaskValidation()
-                                                              },
-
-                                                          // {controller.createNewTask()},
-                                                          child: Obx(
-                                                            () => CircleAvatar(
-                                                              radius: MediaQuery.of(
-                                                                          context)
-                                                                      .size
-                                                                      .height *
-                                                                  0.030,
-                                                              backgroundColor: controller
-                                                                          .validationSuccess
-                                                                          .value ==
-                                                                      true
-                                                                  ? Get.theme
-                                                                      .primaryContainer
-                                                                  : Colors.grey,
-                                                              child: Icon(
-                                                                Icons.send,
-                                                                color: controller
+                                                    ),
+                                                    const SizedBox(height: 15),
+        
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        SingleChildScrollView(
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          child: Row(
+                                                            children: [
+                                                              Visibility(
+                                                                visible: (controller
+                                                                        .assignedUserName
+                                                                        .value ==
+                                                                    "Assign someone"),
+                                                                child: Row(
+                                                                  children: [
+                                                                    InkWell(
+                                                                      onTap: () =>
+                                                                          {
+                                                                        // showDialog(
+                                                                        //     context: context,
+                                                                        //     builder: (BuildContext
+                                                                        //             context) =>
+                                                                        //         Dialog(
+                                                                        //             shape:
+                                                                        //                 RoundedRectangleBorder(
+                                                                        //               borderRadius:
+                                                                        //                   BorderRadius
+                                                                        //                       .circular(
+                                                                        //                           8),
+                                                                        //             ),
+                                                                        //             child:
+                                                                        //                 ContactListPage()))
+                                                                      },
+                                                                      child: Row(
+                                                                        children: [
+                                                                          Icon(
+                                                                            Icons
+                                                                                .person,
+                                                                            color: Get
+                                                                                .theme
+                                                                                .kLightGrayColor,
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 20.0,
+                                                                    ),
+                                                                    InkWell(
+                                                                      onTap: () =>
+                                                                          {
+                                                                        // FlutterDateTimePicker.DatePicker.showDateTimePicker(
+                                                                        //     context,
+                                                                        //     showTitleActions: true,
+                                                                        //     onChanged: (date) {
+                                                                        //   print(
+                                                                        //       'change ${date.millisecondsSinceEpoch} $date in time zone ${date.timeZoneOffset.inHours}');
+                                                                        // }, onConfirm: (date) {
+                                                                        //   controller.dateSelected =
+                                                                        //       date;
+                                                                        //   controller
+                                                                        //       .updateSelectedDate();
+                                                                        // }, currentTime: DateTime.now())
+                                                                      },
+                                                                      child: Icon(
+                                                                        Icons
+                                                                            .calendar_month_outlined,
+                                                                        color: Get
+                                                                            .theme
+                                                                            .kLightGrayColor,
+                                                                      ),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 20.0,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              InkWell(
+                                                                onTap: () => {
+                                                                  // FlutterDateTimePicker.DatePicker.showDateTimePicker(context,
+                                                                  //     showTitleActions: true,
+                                                                  //     onChanged: (date) {
+                                                                  //   print(
+                                                                  //       'change ${date.millisecondsSinceEpoch} $date in time zone ${date.timeZoneOffset.inHours}');
+                                                                  // }, onConfirm: (date) {
+                                                                  //   // controller.dateSelected = date;
+                                                                  //   // controller.updateSelectedDate();
+                                                                  // }, currentTime: DateTime.now())
+                                                                },
+                                                                child: Icon(
+                                                                  Icons
+                                                                      .flag_outlined,
+                                                                  color: Get.theme
+                                                                      .kLightGrayColor,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 20.0,
+                                                              ),
+                                                              Visibility(
+                                                                visible: (!controller
+                                                                    .participants
+                                                                    .value
+                                                                    .isNotEmpty),
+                                                                child: InkWell(
+                                                                  onTap: () => {
+                                                                    showDialog(
+                                                                        context:
+                                                                            context,
+                                                                        builder: (BuildContext
+                                                                                context) =>
+                                                                            const ContactListDialogPage())
+                                                                  },
+                                                                  child: Icon(
+                                                                    Icons
+                                                                        .people_alt_outlined,
+                                                                    color: Get
+                                                                        .theme
+                                                                        .kLightGrayColor,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        InkWell(
+                                                            onTap: () => {
+                                                                  controller
+                                                                      .validationSuccess
+                                                                      .value = false,
+                                                                  // print(
+                                                                  //     controller.validationSuccess.value),
+                                                                  controller
+                                                                      .checkTaskValidation()
+                                                                },
+        
+                                                            // {controller.createNewTask()},
+                                                            child: Obx(
+                                                              () => CircleAvatar(
+                                                                radius: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.030,
+                                                                backgroundColor: controller
                                                                             .validationSuccess
                                                                             .value ==
                                                                         true
-                                                                    ? Colors
-                                                                        .blue
-                                                                    : const Color
-                                                                        .fromARGB(
-                                                                        255,
-                                                                        62,
-                                                                        62,
-                                                                        62),
+                                                                    ? Get.theme
+                                                                        .primaryContainer
+                                                                    : Colors.grey,
+                                                                child: Icon(
+                                                                  Icons.send,
+                                                                  color: controller
+                                                                              .validationSuccess
+                                                                              .value ==
+                                                                          true
+                                                                      ? Colors
+                                                                          .blue
+                                                                      : const Color
+                                                                          .fromARGB(
+                                                                          255,
+                                                                          62,
+                                                                          62,
+                                                                          62),
+                                                                ),
                                                               ),
-                                                            ),
-                                                          ))
-                                                    ],
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 16,
-                                                  ),
-                                                ],
+                                                            ))
+                                                      ],
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 16,
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                )
-                      } 
-                       else if(item['value']== 'visitdone'){
-Get.to(( )=> VisitDoneExamScreen())
-        }else if(item['value']== 'notinterested'){
-Get.to(( )=> NotInterestedLeadQuestionsScreen())
-        } }
-                           ),
-                          ),
+                                            ],
+                                          ),
+                                        )),
+                                  )
+                        } 
+                         else if(item['value']== 'visitdone'){
+        Get.to(( )=> VisitDoneExamScreen())
+          }else if(item['value']== 'notinterested'){
+        Get.to(( )=> NotInterestedLeadQuestionsScreen())
+          } }
+                             ),
+                            ),
+                      
+                      
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+           FxSpacing.height(15),
+              overview(),
+              FxSpacing.height(15),
+          
+                // FxSpacing.height(16),
+              
+               
+                   _buildUnitDetails(context, widget.leadDetails),
+               
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+             
+                children: [
+                  // SizedBox(height: 12),
+        
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        FxText.bodyMedium(
+                                    'Payment Schedule',
+                                    fontWeight: 700,
+                                    color: Color(0xffD2D2D2)
+                                  ),
+                                 
+                          FxText.bodySmall(
+                          '${ widget.leadDetails.data()['fullPs'].length} events',
+                          xMuted: true,
+                          color: Color(0xffD2D2D2).withAlpha(100)
+                        )                         
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
-            ),
-   FxSpacing.height(15),
-            overview(),
-            FxSpacing.height(15),
-        
-              // FxSpacing.height(16),
-            
+              SizedBox(height: 4),
+               _buildPaymentScheduleDetails(context, widget.leadDetails),
+                Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
              
-              tabsCard(),      
-                    
+                children: [
+                  // SizedBox(height: 12),
         
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        FxText.bodyMedium(
+                                    'Costsheet',
+                                    fontWeight: 700,
+                                    color: Color(0xffD2D2D2)
+                                  ),
+                                 
+                          FxText.bodySmall(
+                          '${widget.leadDetails.data()['plotCS'].length  + widget.leadDetails.data()['addChargesCS'].length } events',
+                          xMuted: true,
+                          color: Color(0xffD2D2D2).withAlpha(100)
+                        )                         
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              //  _buildCostSheetDetails(context, widget.leadDetails),
+              _buildCostSheetDetails(context, widget.leadDetails),
 
-  Obx(() =>controller.tabSelected.value == 'Tasks' ? ScheduleListData(context, controller2) : 
-  
-  //  LeadLogsScreen( leadDetails: widget.leadDetails,)
-  Expanded(
-            child: Column(
-              children: [
-                SizedBox(height: 10),
-               callDurationAlert(),
-         Expanded(
-            child: ListView(
-              physics: ClampingScrollPhysics(),
-              padding: EdgeInsets.all(8),
-              children: CallLogChildren)),
-       ],
-     ),
-   )
-   ),
-        //   TabBarView(
-        //   controller: _tabController,
-        //   children: <Widget>[
-        //           Text('data'),
-        //           ScheduleListData(context, controller2),
-        //   ],
-        // )
-            // FxSpacing.height(16),
-            // TabBar(
-            //   controller: _tabController,
-            //   tabs: [
-            //     Tab(
-            //         child: FxText.titleMedium("Tasks",
-            //             color: _currentIndex == 0
-            //                 ? Get.theme.onPrimaryContainer
-            //                 : Get.theme.onBackground,
-            //             fontSize: 12)),
-            //     Tab(
-            //         child: FxText.titleMedium("Logs",
-            //             color: Colors.amber,
-            //             // color: _currentIndex == 1
-            //             //     ? Get.theme.onPrimaryContainer
-            //             //     : Get.theme.onBackground,
-            //             fontSize: 12)),
-            //   ],
-            //   // or TabBarIndicatorSize.tab
-            //   indicatorPadding: EdgeInsets.symmetric(
-            //       horizontal: 20.0, vertical: 8.0), // Adjust the padding here
-            //   labelColor: Get.theme.onPrimaryContainer,
-            //   indicatorColor: appLightTheme.medicarePrimary.withAlpha(100),
-            //   unselectedLabelColor: Get.theme.onPrimaryContainer,
-            // ),
+               
+                Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+             
+                children: [
+                  // SizedBox(height: 12),
+        
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        FxText.bodyMedium(
+                                    'Applicant Details',
+                                    fontWeight: 700,
+                                    color: Color(0xffD2D2D2)
+                                  ),
+                                 
+                          FxText.bodySmall(
+                          '2 Applicants',
+                          xMuted: true,
+                          color: Color(0xffD2D2D2).withAlpha(100)
+                        )                         
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+               _buildCustomerDetails(context, widget.leadDetails),
 
-            // _currentIndex == 0
-            //     ? ScheduleListData(context, controller2)
-            //     : Expanded(
-            //         child: SingleChildScrollView(
-            //             padding: const EdgeInsets.all(8.0),
-            //             child: Column(
-            //               children: children,
-            //             )),
-            //       ),
+                     Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+             
+                children: [
+                  // SizedBox(height: 12),
+        
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        FxText.bodyMedium(
+                                    'Booking Details',
+                                    fontWeight: 700,
+                                    color: Color(0xffD2D2D2)
+                                  ),
+                                 
+                          FxText.bodySmall(
+                          '2 Applicants',
+                          xMuted: true,
+                          color: Color(0xffD2D2D2).withAlpha(100)
+                        )                         
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+               _buildBookingDetails(context, widget.leadDetails),
 
-            //   TabBarView(
-            //   controller: _tabController,
-            //   children: <Widget>[
-            //           Text('data'),
-            //           ScheduleListData(context, controller2),
-            //   ],
-            // )
-            // FxContainer(
-            //   margin: FxSpacing.horizontal(40),
-            //   borderRadiusAll: 8,
-            //   color: appLightTheme.medicarePrimary.withAlpha(40),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: [
-            //       Icon(
-            //         Icons.watch_later,
-            //         color: appLightTheme.medicarePrimary,
-            //         size: 20,
-            //       ),
-            //       FxSpacing.width(8),
-            //       FxText.bodySmall(
-            //         'Sun x, Jan 19, 08:00am - 10:00am',
-            //         color: appLightTheme.medicarePrimary,
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // FxSpacing.height(4),
+                          FxSpacing.height(15),
 
-            // FxContainer(
-            //   marginAll: 24,
-            //   paddingAll: 0,
-            //   child: FxTextField(
-            //     focusedBorderColor: customTheme.medicarePrimary,
-            //     cursorColor: customTheme.medicarePrimary,
-            //     textFieldStyle: FxTextFieldStyle.outlined,
-            //     labelText: 'Type Something ...',
-            //     labelStyle: FxTextStyle.bodySmall(
-            //         color: theme.colorScheme.onBackground, xMuted: true),
-            //     floatingLabelBehavior: FloatingLabelBehavior.never,
-            //     filled: true,
-            //     fillColor: customTheme.card,
-            //     suffixIcon: Icon(
-            //       FeatherIcons.send,
-            //       color: customTheme.medicarePrimary,
-            //       size: 20,
-            //     ),
-            //   ),
-            // ),
-          ],
+               
+                tabsCard(),      
+                      
+          
+        
+          Obx(() =>controller.tabSelected.value == 'Tasks' ? ScheduleListData(context, controller2) : 
+          
+          //  LeadLogsScreen( leadDetails: widget.leadDetails,)
+          Expanded(
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+                 callDurationAlert(),
+           Expanded(
+              child: ListView(
+                physics: ClampingScrollPhysics(),
+                padding: EdgeInsets.all(8),
+                children: CallLogChildren)),
+         ],
+             ),
+           )
+           ),
+          //   TabBarView(
+          //   controller: _tabController,
+          //   children: <Widget>[
+          //           Text('data'),
+          //           ScheduleListData(context, controller2),
+          //   ],
+          // )
+              // FxSpacing.height(16),
+              // TabBar(
+              //   controller: _tabController,
+              //   tabs: [
+              //     Tab(
+              //         child: FxText.titleMedium("Tasks",
+              //             color: _currentIndex == 0
+              //                 ? Get.theme.onPrimaryContainer
+              //                 : Get.theme.onBackground,
+              //             fontSize: 12)),
+              //     Tab(
+              //         child: FxText.titleMedium("Logs",
+              //             color: Colors.amber,
+              //             // color: _currentIndex == 1
+              //             //     ? Get.theme.onPrimaryContainer
+              //             //     : Get.theme.onBackground,
+              //             fontSize: 12)),
+              //   ],
+              //   // or TabBarIndicatorSize.tab
+              //   indicatorPadding: EdgeInsets.symmetric(
+              //       horizontal: 20.0, vertical: 8.0), // Adjust the padding here
+              //   labelColor: Get.theme.onPrimaryContainer,
+              //   indicatorColor: appLightTheme.medicarePrimary.withAlpha(100),
+              //   unselectedLabelColor: Get.theme.onPrimaryContainer,
+              // ),
+        
+              // _currentIndex == 0
+              //     ? ScheduleListData(context, controller2)
+              //     : Expanded(
+              //         child: SingleChildScrollView(
+              //             padding: const EdgeInsets.all(8.0),
+              //             child: Column(
+              //               children: children,
+              //             )),
+              //       ),
+        
+              //   TabBarView(
+              //   controller: _tabController,
+              //   children: <Widget>[
+              //           Text('data'),
+              //           ScheduleListData(context, controller2),
+              //   ],
+              // )
+              // FxContainer(
+              //   margin: FxSpacing.horizontal(40),
+              //   borderRadiusAll: 8,
+              //   color: appLightTheme.medicarePrimary.withAlpha(40),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Icon(
+              //         Icons.watch_later,
+              //         color: appLightTheme.medicarePrimary,
+              //         size: 20,
+              //       ),
+              //       FxSpacing.width(8),
+              //       FxText.bodySmall(
+              //         'Sun x, Jan 19, 08:00am - 10:00am',
+              //         color: appLightTheme.medicarePrimary,
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // FxSpacing.height(4),
+        
+              // FxContainer(
+              //   marginAll: 24,
+              //   paddingAll: 0,
+              //   child: FxTextField(
+              //     focusedBorderColor: customTheme.medicarePrimary,
+              //     cursorColor: customTheme.medicarePrimary,
+              //     textFieldStyle: FxTextFieldStyle.outlined,
+              //     labelText: 'Type Something ...',
+              //     labelStyle: FxTextStyle.bodySmall(
+              //         color: theme.colorScheme.onBackground, xMuted: true),
+              //     floatingLabelBehavior: FloatingLabelBehavior.never,
+              //     filled: true,
+              //     fillColor: customTheme.card,
+              //     suffixIcon: Icon(
+              //       FeatherIcons.send,
+              //       color: customTheme.medicarePrimary,
+              //       size: 20,
+              //     ),
+              //   ),
+              // ),
+            ],
+          ),
         ),
       ),
     );
@@ -1549,7 +1723,7 @@ showModalBottomSheet(
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(12),
       
-      color: widget.leadDetails['Status'] == item['value']
+      color: widget.leadDetails['status'] == item['value']
           ? Get.theme.primaryContainer
           : Colors.transparent,
     ),
@@ -1559,7 +1733,7 @@ showModalBottomSheet(
         item['label']!,
         fontSize: 9,
         fontWeight: 500,
-        color: widget.leadDetails['Status'] == item['value']
+        color: widget.leadDetails['status'] == item['value']
             ? Get.theme.onPrimaryContainer
             : Get.theme.onBackground,
       ),
@@ -1808,8 +1982,8 @@ showModalBottomSheet(
             children: [
               ProjectCard({
                 'label': 'New',
-                'value': widget.leadDetails.data().containsKey('Project')
-                ? '${widget.leadDetails['Project']}'
+                'value': widget.leadDetails.data().containsKey('projName')
+                ? '${widget.leadDetails['projName']}'
                 : 'Not available'
               }),
               SizedBox(width: 10),
@@ -1826,6 +2000,1070 @@ showModalBottomSheet(
   }
 
  
+
+  Widget _buildUnitDetails (context, projData) {
+    print('data 2 ${projData.data()}');
+    String status =
+        projData?.data()?.containsKey('status') == true
+            ? projData['status'].toString()
+            : 'NA';  
+            
+       String size =
+        projData?.data()?.containsKey('size') == true
+            ? projData['size'].toString()
+            : 'NA'; 
+             String facing =
+        projData?.data()?.containsKey('facing') == true
+            ? projData['facing'].toString()
+            : 'NA'; 
+            
+             String totalUnitCount =
+        projData?.data()?.containsKey('totalUnitCount') == true
+            ? projData['totalUnitCount'].toString()
+            : '0';
+    String soldUnitCount =
+        projData?.data()?.containsKey('soldUnitCount') == true
+            ? projData!['soldUnitCount'].toString()
+            : '0';
+    return Container(
+      // onTap: () {
+      //   // Get.to(() => ProjectUnitScreen(projectDetails: projData));
+      // },
+      margin: FxSpacing.nTop(4),
+      // paddingAll: 0,
+
+      color: Color(0xff1C1C1E),
+      // color: Get.theme.primaryContainer,
+      // clipBehavior: Clip.antiAliasWithSaveLayer,
+      // borderRadiusAll: 16,
+   
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            // Image(
+            //   image: AssetImage("assets/images/room.png"),
+            //   fit: BoxFit.fitWidth,
+            // ),
+            Container(
+              // paddingAll: 16,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      FxText.bodyMedium(
+                        facing,
+                        fontWeight: 700,
+                        color: Color(0xffD2D2D2)
+                      ),
+                      FxText.bodyMedium(
+                       status,
+                        fontWeight: 600,
+                        color: appGreenTheme.secondary,
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Colors.grey.withAlpha(180),
+                      ),
+                      FxSpacing.width(4),
+                      FxText.bodySmall(
+                        facing,
+                        xMuted: true,
+                        color: Color(0xffD2D2D2).withAlpha(100)
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.king_bed,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              totalUnitCount,
+                              xMuted: true,
+                               color: Color(0xffD2D2D2).withAlpha(100)
+                              
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.bathtub,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              '${projData!['area']}',
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.square_foot,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              size,
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.aspect_ratio,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              '${projData!['area']}sqft area',
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+
+
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildCustomerDetails (context, projData) {
+    print('data 2 ${projData.data()}');
+    String status =
+        projData?.data()?.containsKey('status') == true
+            ? projData['status'].toString()
+            : 'NA';  
+      String customerName1 =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('customerName1')
+    ? projData!['customerDetailsObj']['customerName1']
+    : 'NA'; 
+    String phNo =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('phoneNo1')
+    ? projData!['customerDetailsObj']['phoneNo1']
+    : 'NA';  
+    String email =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('email1')
+    ? projData!['customerDetailsObj']['email1']
+    : 'NA';      
+       String size =
+        projData?.data()?.containsKey('size') == true
+            ? projData['size'].toString()
+            : 'NA'; 
+             String facing =
+        projData?.data()?.containsKey('facing') == true
+            ? projData['facing'].toString()
+            : 'NA'; 
+            
+             String totalUnitCount =
+        projData?.data()?.containsKey('totalUnitCount') == true
+            ? projData['totalUnitCount'].toString()
+            : '0';
+    String soldUnitCount =
+        projData?.data()?.containsKey('soldUnitCount') == true
+            ? projData!['soldUnitCount'].toString()
+            : '0';
+
+     return Container(
+      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+        decoration: BoxDecoration(
+          border: Border(
+    bottom: BorderSide(
+      color: TColor.border.withOpacity(0.05),
+    ),
+  ),
+      color: Color(0xff1E1E1E),),
+      child: Padding(
+        padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+        child: InkWell(
+          onTap: () async {
+            //_showBottomSheet(context);
+            final Iterable<CallLogEntry> result = await CallLog.query();
+            setState(() {
+              // _callLogEntries = result;
+            });
+            // Get.to(() => UnitDetailsScreen(
+            //       leadDetails: _list,
+            //       callLogEntries: _callLogEntries,
+            //     ));
+          },
+          child: Row(
+            children: <Widget>[
+             
+                
+             
+             
+              Expanded(
+                child: Container(
+                  margin: FxSpacing.left(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                        FxText.bodyMedium(customerName1,  color: Color(0xffD2D2D2), fontSize: 12, ),
+   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+                                FxText.bodySmall(phNo.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                                FxText.bodySmall(email.toString(),  color: Color(0xffD2D2D2).withAlpha(100), fontSize: 8, ),
+                              ],
+                            ),
+                      // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      // Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      // FxText.bodySmall(
+                      // color: Color(0xffD2D2D2),
+                      //   lead_status,
+                      //   fontSize: 12,
+                      //   muted: true,
+                      //   letterSpacing: 1.25,
+                      //   fontWeight: 500,
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
+                      // ),
+                    ],
+                  ),
+                ),
+              ),
+              
+            
+            ],
+          ),
+        ),
+      ),
+    );
+         
+    return Container(
+      // onTap: () {
+      //   // Get.to(() => ProjectUnitScreen(projectDetails: projData));
+      // },
+      margin: FxSpacing.nTop(4),
+      // paddingAll: 0,
+
+      color: Color(0xff1C1C1E),
+      // color: Get.theme.primaryContainer,
+      // clipBehavior: Clip.antiAliasWithSaveLayer,
+      // borderRadiusAll: 16,
+   
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            // Image(
+            //   image: AssetImage("assets/images/room.png"),
+            //   fit: BoxFit.fitWidth,
+            // ),
+            Container(
+              // paddingAll: 16,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      FxText.bodyMedium(
+                        facing,
+                        fontWeight: 700,
+                        color: Color(0xffD2D2D2)
+                      ),
+                      FxText.bodyMedium(
+                       status,
+                        fontWeight: 600,
+                        color: appGreenTheme.secondary,
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Colors.grey.withAlpha(180),
+                      ),
+                      FxSpacing.width(4),
+                      FxText.bodySmall(
+                        facing,
+                        xMuted: true,
+                        color: Color(0xffD2D2D2).withAlpha(100)
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.king_bed,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              totalUnitCount,
+                              xMuted: true,
+                               color: Color(0xffD2D2D2).withAlpha(100)
+                              
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.bathtub,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              '${projData!['area']}',
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  FxSpacing.height(8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.square_foot,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              size,
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.aspect_ratio,
+                              size: 16,
+                              color: Colors.grey.withAlpha(180),
+                            ),
+                            FxSpacing.width(4),
+                            FxText.bodySmall(
+                              '${projData!['area']}sqft area',
+                              xMuted: true,
+                              color: Color(0xffD2D2D2).withAlpha(100)
+
+
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookingDetails (context, projData) {
+    print('data 2 ${projData.data()}');
+    String status =
+        projData?.data()?.containsKey('status') == true
+            ? projData['status'].toString()
+            : 'NA';  
+      String customerName1 =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('customerName1')
+    ? projData!['customerDetailsObj']['customerName1']
+    : 'NA'; 
+    String phNo =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('phoneNo1')
+    ? projData!['customerDetailsObj']['phoneNo1']
+    : 'NA';  
+    String email =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('email1')
+    ? projData!['customerDetailsObj']['email1']
+    : 'NA';      
+       String size =
+        projData?.data()?.containsKey('size') == true
+            ? projData['size'].toString()
+            : 'NA'; 
+             String facing =
+        projData?.data()?.containsKey('facing') == true
+            ? projData['facing'].toString()
+            : 'NA'; 
+            
+             String totalUnitCount =
+        projData?.data()?.containsKey('totalUnitCount') == true
+            ? projData['totalUnitCount'].toString()
+            : '0';
+    String soldUnitCount =
+        projData?.data()?.containsKey('soldUnitCount') == true
+            ? projData!['soldUnitCount'].toString()
+            : '0';
+
+     return Container(
+      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+        decoration: BoxDecoration(
+          border: Border(
+    bottom: BorderSide(
+      color: TColor.border.withOpacity(0.05),
+    ),
+  ),
+      color: Color(0xff1E1E1E),),
+      child: Padding(
+        padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+        child: InkWell(
+          onTap: () async {
+            //_showBottomSheet(context);
+            final Iterable<CallLogEntry> result = await CallLog.query();
+            setState(() {
+              // _callLogEntries = result;
+            });
+            // Get.to(() => UnitDetailsScreen(
+            //       leadDetails: _list,
+            //       callLogEntries: _callLogEntries,
+            //     ));
+          },
+          child: Row(
+            children: <Widget>[
+             
+                
+             
+             BookingDetailsToCard('Booked By', 'B', widget.leadDetails?['by']),
+             BookingDetailsToCard('Booked On', 'D',  DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(widget.leadDetails?['booked_on'])))
+               
+            
+            ],
+          ),
+        ),
+      ),
+    );
+         
+      }
+
+  
+Widget _buildCostSheetDetails (context, projData) {
+    print('data 2 ${projData.data()}');
+    String status =
+        projData?.data()?.containsKey('status') == true
+            ? projData['status'].toString()
+            : 'NA';  
+      String customerName1 =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('customerName1')
+    ? projData!['customerDetailsObj']['customerName1']
+    : 'NA';      
+       String size =
+        projData?.data()?.containsKey('size') == true
+            ? projData['size'].toString()
+            : 'NA'; 
+             String facing =
+        projData?.data()?.containsKey('facing') == true
+            ? projData['facing'].toString()
+            : 'NA'; 
+            
+             String totalUnitCount =
+        projData?.data()?.containsKey('totalUnitCount') == true
+            ? projData['totalUnitCount'].toString()
+            : '0';
+    String soldUnitCount =
+        projData?.data()?.containsKey('soldUnitCount') == true
+            ? projData!['soldUnitCount'].toString()
+            : '0';
+//   widget.leadDetails.data()['fullPs'].
+// return CustomScrollView(
+//   slivers: [
+//     SliverList(
+//       delegate: SliverChildBuilderDelegate(
+//         (BuildContext context, int index) {
+//           return Text('hello');
+//         },
+//         childCount: widget.leadDetails.data()['fullPs'].length,
+//       ),
+//     ),
+//   ],
+// );
+List plotCS = widget.leadDetails.data()['plotCS'] ?? [];
+List addChargesCS = widget.leadDetails.data()['addChargesCS'] ?? [];
+List mergedList = [];
+mergedList.addAll(plotCS);
+mergedList.addAll(addChargesCS);
+return Column(
+  children: List.generate(
+    mergedList.length,
+    (index) { 
+ final item = mergedList[index];
+ final label = item['component']['label'] ?? 'No Label'; 
+ final totalAmount = item['TotalNetSaleValueGsT'] ?? 0; 
+ final charges = item['charges'] ?? 0; 
+ final units = item['units']['value'] == 'costpersqft' ? '/sqft':  ''; 
+ final elgible = item['elgible'] ?? false; 
+ final elgFrom = item['elgFrom'] ?? 'No Label'; 
+
+   return Container(
+      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+        decoration: BoxDecoration(
+          border: Border(
+    bottom: BorderSide(
+      color: TColor.border.withOpacity(0.05),
+    ),
+  ),
+      color: Color(0xff1E1E1E),),
+      child: Padding(
+        padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+        child: InkWell(
+          onTap: () async {
+            //_showBottomSheet(context);
+            final Iterable<CallLogEntry> result = await CallLog.query();
+            setState(() {
+              // _callLogEntries = result;
+            });
+            // Get.to(() => UnitDetailsScreen(
+            //       leadDetails: _list,
+            //       callLogEntries: _callLogEntries,
+            //     ));
+          },
+          child: Row(
+            children: <Widget>[
+             
+                
+             
+             
+              Expanded(
+                child: Container(
+                  margin: FxSpacing.left(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      // Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                        FxText.bodyMedium(label,  color: Color(0xffD2D2D2), fontSize: 12, ),
+                         Row(
+                              children: [
+                                FxText.bodySmall(charges.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                                FxText.bodySmall(units.toString(),  color: Color(0xffD2D2D2).withAlpha(100), fontSize: 8, ),
+                              ],
+                            ),
+                      // FxText.bodySmall(
+                      // color: Color(0xffD2D2D2),
+                      //   lead_status,
+                      //   fontSize: 12,
+                      //   muted: true,
+                      //   letterSpacing: 1.25,
+                      //   fontWeight: 500,
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
+                      // ),
+                    ],
+                  ),
+                ),
+              ),
+               Container(
+                 margin: FxSpacing.right(16),
+                 child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          FxText.bodySmall('₹ ${NumberFormatter.format(totalAmount)}',  color: Color(0xffD2D2D2) ),
+                            // SizedBox(width: 5,),
+                            // Row(
+                            //   children: [
+                            //     FxText.bodySmall(charges.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                            //     FxText.bodySmall(units.toString(),  color: Color(0xffD2D2D2).withAlpha(100), fontSize: 8, ),
+                            //   ],
+                            // ),
+                
+                        ]),
+               ),
+            
+            
+            ],
+          ),
+        ),
+      ),
+    );
+         
+  }
+  ),
+);
+return ListView.builder(
+  shrinkWrap: true,
+  physics: NeverScrollableScrollPhysics(), // Disables internal scrolling
+  itemCount: widget.leadDetails.data()['fullPs'].length,
+  itemBuilder: (context, index) {
+    return Text('hello');
+  },
+);
+return Wrap(
+  spacing: 8.0, // Horizontal space between items
+  runSpacing: 4.0, // Vertical space between rows
+  children: List.generate(
+    widget.leadDetails.data()['fullPs'].length,
+    (index) => Container(
+      width: 100, // Set the width for each item
+      child: Text('Item $index'),
+    ),
+  ),
+);
+ return Container(
+  height: 300,
+      child: ListView.builder(
+        itemCount: widget.leadDetails.data()['fullPs'].length,
+        itemBuilder: (context, index) {
+          return Text('hello');
+          // return LeadDetailItem(
+          //   customerName: widget.leadDetails.data()['fullPs'][index]['customerName'], // Adjust this line according to your data structure
+          //   callNumber: _callNumber,
+          // );
+        },
+      ),
+    );
+return Expanded(
+  child: Column(
+    children: [
+      Expanded(
+        child: ListView
+                                                                                  .builder(
+                                                                                itemCount: widget.leadDetails.data()['fullPs'].length,
+                                                                                itemBuilder:
+                                                                                    (context,
+                                                                                        index) {
+             return Container(
+              margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+                decoration: BoxDecoration(
+                  border: Border(
+            bottom: BorderSide(
+              color: TColor.border.withOpacity(0.05),
+            ),
+          ),
+              color: Color(0xff1E1E1E),),
+              child: Padding(
+                padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+                child: InkWell(
+                  onTap: () async {
+                    //_showBottomSheet(context);
+                    final Iterable<CallLogEntry> result = await CallLog.query();
+                    setState(() {
+                      // _callLogEntries = result;
+                    });
+                    // Get.to(() => UnitDetailsScreen(
+                    //       leadDetails: _list,
+                    //       callLogEntries: _callLogEntries,
+                    //     ));
+                  },
+                  child: Row(
+                    children: <Widget>[
+                     
+                        
+                     
+                     
+                      Expanded(
+                        child: Container(
+                          margin: FxSpacing.left(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(customerName1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              // Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              Text(customerName1, style:appLightTheme.kSubTitle),
+                              // FxText.bodySmall(
+                              // color: Color(0xffD2D2D2),
+                              //   lead_status,
+                              //   fontSize: 12,
+                              //   muted: true,
+                              //   letterSpacing: 1.25,
+                              //   fontWeight: 500,
+                              //   maxLines: 1,
+                              //   overflow: TextOverflow.ellipsis,
+                              // ),
+                            ],
+                          ),
+                        ),
+                      ),
+                       Container(
+                         margin: FxSpacing.right(16),
+                         child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                    InkWell(
+                            onTap: () {
+                              _callNumber();
+                            },
+                            child: FxContainer.rounded(
+                              color: Color(0xff58423B),
+                              paddingAll: 8,
+                              child: Icon(
+                                Icons.call,
+                                color: Get.theme.onPrimary,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        
+                                ]),
+                       ),
+                    
+                    ],
+                  ),
+                ),
+              ),
+            );
+                 
+                                                                                        }
+                                                                                  ),
+      ),
+    ],
+  ),
+);
+  }
+
+
+ 
+  Widget _buildPaymentScheduleDetails (context, projData) {
+    print('data 2 ${projData.data()}');
+    String status =
+        projData?.data()?.containsKey('status') == true
+            ? projData['status'].toString()
+            : 'NA';  
+      String customerName1 =
+    projData?.data()?.containsKey('customerDetailsObj') == true &&
+    (projData!['customerDetailsObj'] as Map).containsKey('customerName1')
+    ? projData!['customerDetailsObj']['customerName1']
+    : 'NA';      
+       String size =
+        projData?.data()?.containsKey('size') == true
+            ? projData['size'].toString()
+            : 'NA'; 
+             String facing =
+        projData?.data()?.containsKey('facing') == true
+            ? projData['facing'].toString()
+            : 'NA'; 
+            
+             String totalUnitCount =
+        projData?.data()?.containsKey('totalUnitCount') == true
+            ? projData['totalUnitCount'].toString()
+            : '0';
+    String soldUnitCount =
+        projData?.data()?.containsKey('soldUnitCount') == true
+            ? projData!['soldUnitCount'].toString()
+            : '0';
+//   widget.leadDetails.data()['fullPs'].
+// return CustomScrollView(
+//   slivers: [
+//     SliverList(
+//       delegate: SliverChildBuilderDelegate(
+//         (BuildContext context, int index) {
+//           return Text('hello');
+//         },
+//         childCount: widget.leadDetails.data()['fullPs'].length,
+//       ),
+//     ),
+//   ],
+// );
+return Column(
+  children: List.generate(
+    widget.leadDetails.data()['fullPs'].length,
+    (index) { 
+       final item = widget.leadDetails.data()['fullPs'][index];
+ final label = item['label'] ?? 'No Label'; 
+ final totalAmount = item['value'] ?? 0; 
+ final elgible = item['elgible'] == true ?  'Eligible' : 'Not Eligible';
+ final elgFrom = item['elgFrom'] ?? 'No Label'; 
+   return Container(
+      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+        decoration: BoxDecoration(
+          border: Border(
+    bottom: BorderSide(
+      color: TColor.border.withOpacity(0.05),
+    ),
+  ),
+      color: Color(0xff1E1E1E),),
+      child: Padding(
+        padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+        child: InkWell(
+          onTap: () async {
+            //_showBottomSheet(context);
+            final Iterable<CallLogEntry> result = await CallLog.query();
+            setState(() {
+              // _callLogEntries = result;
+            });
+            // Get.to(() => UnitDetailsScreen(
+            //       leadDetails: _list,
+            //       callLogEntries: _callLogEntries,
+            //     ));
+          },
+          child: Row(
+            children: <Widget>[
+             
+                
+             
+             
+              Expanded(
+                child: Container(
+                  margin: FxSpacing.left(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      // Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                        FxText.bodyMedium(label,  color: Color(0xffD2D2D2), fontSize: 12, ),
+                        Row(
+                          children: [
+                            // FxText.bodySmall(totalAmount.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                            // SizedBox(width: 5,),
+                            FxText.bodySmall(elgible.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                          ],
+                        ),
+                      // FxText.bodySmall(
+                      // color: Color(0xffD2D2D2),
+                      //   lead_status,
+                      //   fontSize: 12,
+                      //   muted: true,
+                      //   letterSpacing: 1.25,
+                      //   fontWeight: 500,
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
+                      // ),
+                    ],
+                  ),
+                ),
+              ),
+                Container(
+                 margin: FxSpacing.right(16),
+                 child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          FxText.bodySmall('₹ ${NumberFormatter.format(totalAmount)}',  color: Color(0xffD2D2D2) ),
+                            SizedBox(width: 5,),
+                            // Row(
+                            //   children: [
+                            //     FxText.bodySmall(charges.toString(),  color: Color(0xffD2D2D2).withAlpha(100) ),
+                            //     FxText.bodySmall(units.toString(),  color: Color(0xffD2D2D2).withAlpha(100), fontSize: 8, ),
+                            //   ],
+                            // ),
+                
+                        ]),
+               ),
+            
+            
+            ],
+          ),
+        ),
+      ),
+    );
+         
+  }
+  ),
+);
+return ListView.builder(
+  shrinkWrap: true,
+  physics: NeverScrollableScrollPhysics(), // Disables internal scrolling
+  itemCount: widget.leadDetails.data()['fullPs'].length,
+  itemBuilder: (context, index) {
+    return Text('hello');
+  },
+);
+return Wrap(
+  spacing: 8.0, // Horizontal space between items
+  runSpacing: 4.0, // Vertical space between rows
+  children: List.generate(
+    widget.leadDetails.data()['fullPs'].length,
+    (index) => Container(
+      width: 100, // Set the width for each item
+      child: Text('Item $index'),
+    ),
+  ),
+);
+ return Container(
+  height: 300,
+      child: ListView.builder(
+        itemCount: widget.leadDetails.data()['fullPs'].length,
+        itemBuilder: (context, index) {
+          return Text('hello');
+          // return LeadDetailItem(
+          //   customerName: widget.leadDetails.data()['fullPs'][index]['customerName'], // Adjust this line according to your data structure
+          //   callNumber: _callNumber,
+          // );
+        },
+      ),
+    );
+return Expanded(
+  child: Column(
+    children: [
+      Expanded(
+        child: ListView
+                                                                                  .builder(
+                                                                                itemCount: widget.leadDetails.data()['fullPs'].length,
+                                                                                itemBuilder:
+                                                                                    (context,
+                                                                                        index) {
+             return Container(
+              margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+                decoration: BoxDecoration(
+                  border: Border(
+            bottom: BorderSide(
+              color: TColor.border.withOpacity(0.05),
+            ),
+          ),
+              color: Color(0xff1E1E1E),),
+              child: Padding(
+                padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
+                child: InkWell(
+                  onTap: () async {
+                    //_showBottomSheet(context);
+                    final Iterable<CallLogEntry> result = await CallLog.query();
+                    setState(() {
+                      // _callLogEntries = result;
+                    });
+                    // Get.to(() => UnitDetailsScreen(
+                    //       leadDetails: _list,
+                    //       callLogEntries: _callLogEntries,
+                    //     ));
+                  },
+                  child: Row(
+                    children: <Widget>[
+                     
+                        
+                     
+                     
+                      Expanded(
+                        child: Container(
+                          margin: FxSpacing.left(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(customerName1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              // Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                              Text(customerName1, style:appLightTheme.kSubTitle),
+                              // FxText.bodySmall(
+                              // color: Color(0xffD2D2D2),
+                              //   lead_status,
+                              //   fontSize: 12,
+                              //   muted: true,
+                              //   letterSpacing: 1.25,
+                              //   fontWeight: 500,
+                              //   maxLines: 1,
+                              //   overflow: TextOverflow.ellipsis,
+                              // ),
+                            ],
+                          ),
+                        ),
+                      ),
+                       Container(
+                         margin: FxSpacing.right(16),
+                         child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                    InkWell(
+                            onTap: () {
+                              _callNumber();
+                            },
+                            child: FxContainer.rounded(
+                              color: Color(0xff58423B),
+                              paddingAll: 8,
+                              child: Icon(
+                                Icons.call,
+                                color: Get.theme.onPrimary,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        
+                                ]),
+                       ),
+                    
+                    ],
+                  ),
+                ),
+              ),
+            );
+                 
+                                                                                        }
+                                                                                  ),
+      ),
+    ],
+  ),
+);
+  }
+
 
     Widget tabsCard() {
     return Column(
@@ -1947,7 +3185,46 @@ showModalBottomSheet(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                  Text(nutrition['value'],style: appLightTheme.bodySmall,),
-                Text('Executive',style: appLightTheme.bodySmall.copyWith(fontSize: 10, letterSpacing:  1, color: Color(0xffD2D2D2).withAlpha(100)),),
+                Text('CRM Executive',style: appLightTheme.bodySmall.copyWith(fontSize: 10, letterSpacing:  1, color: Color(0xffD2D2D2).withAlpha(100)),),
+         
+            
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+    Widget BookingDetailsToCard(title, letter, data) {
+    return Expanded(
+      child: FxContainer(
+        borderRadiusAll: 0,
+        padding: FxSpacing.fromLTRB(8, 8, 12, 8),
+        color: Color(0xff1C1C1E),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FxContainer.bordered(
+                paddingAll: 4,
+                width: 32,
+                height: 32,
+                borderRadiusAll: 0,
+                color: Color(0xff58423B),
+                border:
+                    Border.all(color: Color(0xff58423B), width: 1),
+                child: Center(
+                    child: FxText.bodySmall(
+                       '${letter}',
+                       fontWeight: 900,
+                        letterSpacing: 0,
+                        color: Get.theme.onPrimary))),
+            FxSpacing.width(8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 Container(width:96, child: Text("${data}",style: appLightTheme.bodySmall, overflow: TextOverflow.ellipsis,)),
+                Text('${title}',style: appLightTheme.bodySmall.copyWith(fontSize: 10, letterSpacing:  1, color: Color(0xffD2D2D2).withAlpha(100)),),
          
             
               ],
@@ -2083,7 +3360,7 @@ Widget StatusCard(nutrition) {
             fontWeight: 700,
           ),
           FxText.bodySmall(
-            '${widget.leadDetails['Name']}${"\'s"} ',
+            '${widget.leadDetails['customerDetailsObj']['customerName1']}${"\'s"} ',
             color: Constant.softColors.green.onColor,
             fontWeight: 900,
             fontSize: 14,
@@ -2211,7 +3488,6 @@ Widget StatusCard(nutrition) {
                 SizedBox(height: 10),
                 alert(),
                 Expanded(
-               
                   child: ListView.builder(
                     padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
                       primary: false,

@@ -37,7 +37,7 @@ class FullAppController extends GetxController {
     ];
 
     items = [
-        HomePage(),
+      HomePage(),
       const DashboardPage(),
     
       const SearchPage(),

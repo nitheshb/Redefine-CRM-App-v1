@@ -44,6 +44,7 @@ import 'package:redefineerp/Widgets/datewidget.dart';
 import 'package:redefineerp/Widgets/headerbg.dart';
 import 'package:redefineerp/Widgets/minimsg.dart';
 import 'package:redefineerp/Widgets/task_sheet_widget.dart';
+import 'package:redefineerp/common/color_extensions.dart';
 import 'package:redefineerp/helpers/firebase_help.dart';
 import 'package:redefineerp/themes/container.dart';
 import 'package:redefineerp/themes/customTheme.dart';
@@ -51,6 +52,7 @@ import 'package:redefineerp/themes/spacing.dart';
 import 'package:redefineerp/themes/textFile.dart';
 import 'package:redefineerp/themes/themes.dart';
 import 'package:intl/intl.dart';
+import 'package:redefineerp/util/number_formater.dart';
 import 'package:rxdart/streams.dart';
 import 'package:call_log/call_log.dart';
 import 'package:workmanager/workmanager.dart';
@@ -360,13 +362,12 @@ class _HomePageState extends State<HomePage> {
                                 
 StreamBuilder<QuerySnapshot>(
     stream: FirebaseFirestore.instance
-      .collection("${controller2.currentUserObj['orgId']}_leads")
-      .where("Status", whereIn: [
-        'new',
-        'followup',
-        'visitfixed',
-        'visitdone',
-        'negotiation'
+      .collection("${controller2.currentUserObj['orgId']}_units")
+      .where("status", whereIn: [
+           'booked',
+          'agreement_pipeline',
+          'agreement',
+          'registered','possession'
 
       ])
       .snapshots(),
@@ -386,12 +387,12 @@ StreamBuilder<QuerySnapshot>(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             for (var item in [
-              {'label': 'New', 'value': 'new'},
-              {'label': 'Followup', 'value': 'followup'},
-              {'label': 'Visit Fixed', 'value': 'visitfixed'},
-              {'label': 'Visit Done', 'value': 'visitdone'},
-              {'label': 'negotiation', 'value': 'negotiation'},       
-               {'label': 'Not Interested', 'value': 'notinterested'},
+              {'label': 'Booked', 'value': 'booked'},
+              {'label': 'Allotment', 'value': 'agreement_pipeline'},
+              {'label': 'Agreement', 'value': 'agreement'},
+              {'label': 'Construction', 'value': 'construction'},
+              {'label': 'Registration', 'value': 'registered'},       
+               {'label': 'Possession', 'value': 'possession'},
              
             ])
               Padding(
@@ -516,17 +517,16 @@ StreamBuilder<QuerySnapshot>(
               body: Center(child: () {
 
                 if(controller.myLeadStatusCategory.value == 'allBusinessTasks'){
-  return _LeadsTasksList(context, controller2);
-                }else if(['new','followup','visitfixed','visitdone','negotiation', 'notinterested','junk', 'booked'].contains(controller.myLeadStatusCategory.value)){
-
+                    return _LeadsTasksList(context, controller2);
+                } else if(['agreement_pipeline','possession','agreement','construction', 'registration','booked'].contains(controller.myLeadStatusCategory.value)){
                     return _LeadsList(context, controller, controller2);
-
                 }
                 switch (controller.myLeadStatusCategory.value) {
                   case 'projects':
                     return _projectsBody(context, controller2);
                   default:
-                    return Text('Invalid selection');
+                  
+                    return Text('Invalid selection ${controller.myLeadStatusCategory.value}');
                 }
               }()),
 
@@ -935,7 +935,7 @@ StreamBuilder<QuerySnapshot>(
   Widget _LeadsList(context,controller, controller2) {
     return StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection("${controller2.currentUserObj['orgId']}_leads")
+            .collection("${controller2.currentUserObj['orgId']}_units")
             // .where("assignedTo", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         //     .where("Status", whereIn: [
         //   'new',
@@ -944,7 +944,7 @@ StreamBuilder<QuerySnapshot>(
         //   'visitdone'
         // ]).snapshots(), 
         //
- .where("Status", isEqualTo: controller.myLeadStatusCategory.value).snapshots(),
+ .where("status", isEqualTo: controller.myLeadStatusCategory.value).snapshots(),
         
         // stream: DbQuery.instanace.getStreamCombineTasks(),
         builder: (context, snapshot) {
@@ -956,17 +956,20 @@ StreamBuilder<QuerySnapshot>(
               child: Text("Something went wrong! 😣..."),
             );
           } else if (snapshot.hasData) {
+   
+          //  final documents1 = snapshot.data!.docs;
+          //   documents1.sort((a, b) => a['booked_on'].compareTo(b['booked_on']));
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 22),
                 Row(
                   children: [
-                    SizedBox(width: 5,),
                     Text('you have ',style: appLightTheme.bodyHigh,),
-                    Text('0 due events',style: appLightTheme.bodyHigh.copyWith(color: Color(0xffE7A166)),),
+                    Text('${snapshot.data?.docs?.length ?? 0} bookings',style: appLightTheme.bodyHigh.copyWith(color: Color(0xffE7A166)),),
                   ],
-                ),
+                ),    SizedBox(width: 5,),
+                
                 Expanded(
                   child: MediaQuery.removePadding(
                     context: context,
@@ -980,7 +983,7 @@ StreamBuilder<QuerySnapshot>(
                           itemBuilder: (context, i) {
                             var projData = snapshot.data?.docs[i];
 
-                            return _buildLeadsCard(context, projData);
+                            return _buildUnitCard(context, projData);
                           }),
                     ),
                   ),
@@ -993,22 +996,46 @@ StreamBuilder<QuerySnapshot>(
         });
   }
 
-  Widget _buildLeadsCard(context, _list) {
+  Widget _buildUnitCard(context, _list) {
+
     String lead_Remarks = _list?.data()?.containsKey('Remarks') == true
         ? _list!['Remarks']
         : 'NA';
 
     String lead_Name =
-        _list?.data()?.containsKey('Name') == true ? _list!['Name'] : 'NA';
+        _list?.data()?.containsKey('Name') == true ? _list!['Name'] : 'NA';   
+    String unit_no =
+        _list?.data()?.containsKey('unit_no') == true ? _list!['unit_no'] : 'NA'; 
+    String projName =
+        _list?.data()?.containsKey('pId') == true ? _list!['pId'] : 'NA';  
+        // _list['customerDetailsObj']['customerName1']
+    String customerName1 =
+    _list?.data()?.containsKey('customerDetailsObj') == true &&
+    (_list!['customerDetailsObj'] as Map).containsKey('customerName1')
+    ? _list!['customerDetailsObj']['customerName1']
+    : 'NA';
+    String phoneNo1 =
+    _list?.data()?.containsKey('customerDetailsObj') == true &&
+    (_list!['customerDetailsObj'] as Map).containsKey('phoneNo1')
+    ? _list!['customerDetailsObj']['phoneNo1']
+    : 'NA'; 
 
+    var T_elgible_balance =
+        _list?.data()?.containsKey('T_elgible_balance') == true ? _list!['T_elgible_balance'] : 0;  
     String lead_status =
         _list?.data()?.containsKey('Status') == true ? _list!['Status'] : 'NA';
     String lead_Mobile =
         _list?.data()?.containsKey('Mobile') == true ? _list!['Mobile'] : 'NA';
 
     return Container(
-      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 8),
-      color: Color(0xff1E1E1E),
+      margin: FxSpacing.only(left:8, right: 8, bottom: 0, top: 0),
+        decoration: BoxDecoration(
+          border: Border(
+    bottom: BorderSide(
+      color: TColor.border.withOpacity(0.05),
+    ),
+  ),
+      color: Color(0xff1E1E1E),),
       child: Padding(
         padding: const EdgeInsets.only(top:8.0, bottom: 8.0),
         child: InkWell(
@@ -1018,7 +1045,7 @@ StreamBuilder<QuerySnapshot>(
             setState(() {
               _callLogEntries = result;
             });
-            Get.to(() => LeadsDetailsScreen(
+            Get.to(() => UnitDetailsScreen(
                   leadDetails: _list,
                   callLogEntries: _callLogEntries,
                 ));
@@ -1034,76 +1061,126 @@ StreamBuilder<QuerySnapshot>(
               //     fit: BoxFit.cover,
               //   ),
               // ),
+                Container(
+                  margin: FxSpacing.left(8
+                  ),
+                // height: 55,
+                width: 55,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: TColor.gray70.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                   
+
+                    Text(
+                      unit_no,
+                      style: TextStyle(
+                          color: TColor.gray30,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500),
+                    ),
+                     Text(
+                      "Unit",
+                      style: TextStyle(
+                          color: TColor.gray30,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: Container(
                   margin: FxSpacing.left(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(lead_Name!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
-                      Text(lead_Remarks, style:appLightTheme.kSubTitle),
-                    
-                      
-                      FxText.bodySmall(
-                      color: Color(0xffD2D2D2),
-        
-                        lead_status,
-                        fontSize: 12,
-                        muted: true,
-                        letterSpacing: 1.25,
-                        fontWeight: 500,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  _callNumber(lead_Mobile);
-                  print('res iss ');
-        
-                  // setState(() {
-                  //   // _list[index] = !_list[index];
-                  // });
-                },
-                child: Container(
-                  child: Column(
-                    children: [
-                       FxContainer(
-                        margin: FxSpacing.right(16),
-                        padding: FxSpacing.fromLTRB(16, 8, 16, 8),
-                        bordered: false,
-                        borderRadiusAll: 0,
-                        border: Border.all(color: Colors.grey, width: 1),
-                        color: false ? Colors.transparent : Colors.white,
-                        child: FxText.bodySmall("Call",
-                            color: false
-                                ? appLightTheme.colorScheme.onBackground
-                                : Color(0xff0D0D0D),
-                            fontWeight: 600,
-                            letterSpacing: 0.3),
-                      ),
-                  
-                      // FxContainer(
-                      //   margin: FxSpacing.right(16),
-                      //   padding: FxSpacing.fromLTRB(16, 8, 16, 8),
-                      //   bordered: false,
-                      //   borderRadiusAll: 0,
-                      //   border: Border.all(color: Colors.grey, width: 1),
-                      //   color: false ? Colors.transparent : Colors.white,
-                      //   child: FxText.bodySmall("OVERDUE",
-                      //       color: false
-                      //           ? appLightTheme.colorScheme.onBackground
-                      //           : Color(0xff0D0D0D),
-                      //       fontWeight: 600,
-                      //       letterSpacing: 0.3),
+                      Text(customerName1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      // Text(projName!, style:appLightTheme.bodyMedium.copyWith(fontSize: 14,  letterSpacing: 1.25,)),
+                      Text(phoneNo1!, style:appLightTheme.bodyMedium.copyWith(fontSize: 10,  letterSpacing: 1.25,)),
+                      Text(lead_Remarks, style:appLightTheme.kSubTitle.copyWith(fontSize: 10)),
+                      // FxText.bodySmall(
+                      // color: Color(0xffD2D2D2),
+                      //   lead_status,
+                      //   fontSize: 12,
+                      //   muted: true,
+                      //   letterSpacing: 1.25,
+                      //   fontWeight: 500,
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
                       // ),
                     ],
                   ),
                 ),
               ),
+               Container(
+                 margin: FxSpacing.right(16),
+                 child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "\₹ ${ NumberFormatter.format(T_elgible_balance)}",
+                            style: TextStyle(
+                                color: TColor.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            "you'll get",
+                            style: appLightTheme.kSubTitle.copyWith(
+                                color: TColor.gray30,
+                                fontSize: 12,
+                                ),
+                          ),
+                        ]),
+               ),
+              // InkWell(
+              //   onTap: () {
+              //     _callNumber(lead_Mobile);
+              //     print('res iss ');
+              //   },
+              //   child: Container(
+              //     child: Column(
+              //       children: [
+              //          FxContainer(
+              //           margin: FxSpacing.right(16),
+              //           padding: FxSpacing.fromLTRB(16, 8, 16, 8),
+              //           bordered: false,
+              //           borderRadiusAll: 0,
+              //           border: Border.all(color: Colors.grey, width: 1),
+              //           color: false ? Colors.transparent : Colors.white,
+              //           child: FxText.bodySmall("Call",
+              //               color: false
+              //                   ? appLightTheme.colorScheme.onBackground
+              //                   : Color(0xff0D0D0D),
+              //               fontWeight: 600,
+              //               letterSpacing: 0.3),
+              //         ),
+                  
+              //         FxContainer(
+              //           margin: FxSpacing.right(16),
+              //           padding: FxSpacing.fromLTRB(16, 8, 16, 8),
+              //           bordered: false,
+              //           borderRadiusAll: 0,
+              //           border: Border.all(color: Colors.grey, width: 1),
+              //           color: false ? Colors.transparent : Colors.white,
+              //           child: FxText.bodySmall("OVERDUE",
+              //               color: false
+              //                   ? appLightTheme.colorScheme.onBackground
+              //                   : Color(0xff0D0D0D),
+              //               fontWeight: 600,
+              //               letterSpacing: 0.3),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+            
             ],
           ),
         ),
@@ -1214,7 +1291,7 @@ StreamBuilder<QuerySnapshot>(
         onTap: () {
           //_showBottomSheet(context);
 
-          Get.to(() => LeadsDetailsScreen(
+          Get.to(() => UnitDetailsScreen(
                 leadDetails: _list,
                 callLogEntries: _callLogEntries,
               ));
@@ -1328,7 +1405,7 @@ StreamBuilder<QuerySnapshot>(
         // FxSpacing.width(8),
  
          Text(
-                                "Leads manager",
+                                "CRM BOOK",
                             
                                  style: TextStyle(
                             fontFamily: 'SpaceGrotesk', // Use the font family you declared
@@ -1364,6 +1441,6 @@ StreamBuilder<QuerySnapshot>(
     );
   }
   int _getStatusCount( data, String status) {
-  return data.where((lead) => lead['Status'] == status).length;
+  return data.where((lead) => lead['status'] == status).length;
 }
 }

@@ -69,7 +69,7 @@ Widget statusBarItems(title) {
                           onTap: () =>{controller.flipMode(title)},
                 child: FxContainer(
                   borderRadius: BorderRadius.circular(0),
-                  color: (title== "Tasks" && !controller.businessMode.value) ?  Color(0xff1C1C1E) : (title== "Leads" && controller.businessMode.value) ?  Color(0xff58423B): Color(0xff1C1C1E),
+                  color: (title== "Tasks" && !controller.businessMode.value) ?  Color(0xff1C1C1E) : (title== "Units" && controller.businessMode.value) ?  Color(0xff58423B): Color(0xff1C1C1E),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -84,13 +84,13 @@ Widget statusBarItems(title) {
             .snapshots() :
 
             FirebaseFirestore.instance
-            .collection("${UserController.currentUserObj['orgId']}_leads")
+            .collection("${UserController.currentUserObj['orgId']}_units")
             // .where("assignedTo", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-            .where("Status", whereIn: [
-          'new',
-          'followup',
-          'visitfixed',
-          'visitdone','negotiation'
+            .where("status", whereIn: [
+          'booked',
+          'agreement_pipeline',
+          'agreement',
+          'registered','possession'
         ]).snapshots(), 
         //
 //  .where("Status", isEqualTo: controller.myLeadStatusCategory.value).snapshots(),
@@ -134,7 +134,7 @@ Widget statusBarItems(title) {
 //             );
               return FxText.titleSmall(
                          personalTasks.length.toString(),
-                         color: (title== "Tasks" && !controller.businessMode.value) ?  Get.theme.primaryContainer: (title== "Leads" && controller.businessMode.value) ?   Get.theme.onPrimary : Get.theme.primaryContainer,
+                         color: (title== "Tasks" && !controller.businessMode.value) ?  Get.theme.primaryContainer: (title== "Units" && controller.businessMode.value) ?   Get.theme.onPrimary : Get.theme.primaryContainer,
                         fontWeight: 700,
                         letterSpacing: 1,
                       );
@@ -161,7 +161,7 @@ Widget statusBarItems(title) {
 
               FxText.titleMedium(
                         title?.toUpperCase(),
-                       color:(title== "Tasks" && !controller.businessMode.value) ?  Get.theme.primaryContainer: (title== "Leads" && controller.businessMode.value) ?   Get.theme.onPrimary: Get.theme.primaryContainer,
+                       color:(title== "Tasks" && !controller.businessMode.value) ?  Get.theme.primaryContainer: (title== "Units" && controller.businessMode.value) ?   Get.theme.onPrimary: Get.theme.primaryContainer,
                         fontWeight: 700,
                         letterSpacing: 1.25,
 
@@ -201,7 +201,7 @@ Widget statusBarItems(title) {
            
            statusBarItems('Tasks'),
             FxSpacing.width(16),
-            statusBarItems('Leads'),
+            statusBarItems('Units'),
           //   Expanded(
           //     child: InkWell(
           //               onTap: () => widget.flipMode(),

@@ -61,7 +61,7 @@ class _SuperHomePageState extends State<SuperHomePage>   with SingleTickerProvid
                   border: Border(
                       top: BorderSide(
                           color: Colors.transparent,
-                          width: 1,
+                          width: 0,
                           style: BorderStyle.solid)),
                   padding: FxSpacing.xy(12, 16),
                   color: Color(0xff0D0D0D),

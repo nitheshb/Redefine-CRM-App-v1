@@ -7,42 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:805525655781:android:6cb13cb14a16d32fdc840c",
-        "android_client_info": {
-          "package_name": "com.crmbook.erp.redefine"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "805525655781-blp0t57efv1dcunrqbvrrsnd8ok1e1ke.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCfee-Mdo-rFHx1JWQXf7gQ164IScmLY0I"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "805525655781-blp0t57efv1dcunrqbvrrsnd8ok1e1ke.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "805525655781-uod5i1bai32pm1rld583gbhd8uhps0rg.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.taskman"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:805525655781:android:f9667ee6ef2e4dcedc840c",
         "android_client_info": {
           "package_name": "com.example.redefineerp"

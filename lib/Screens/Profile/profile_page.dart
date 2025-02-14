@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:get/get.dart';
+import 'package:redefineerp/Screens/Auth/auth_controller.dart';
 import 'package:redefineerp/Screens/Auth/login_page.dart';
 import 'package:redefineerp/Screens/Home/homepage_controller.dart';
 import 'package:redefineerp/Screens/OnBoarding/onboarding_page.dart';
@@ -22,6 +23,8 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
     final controller = Get.put<ProfileController>(ProfileController());
+    final authCont = Get.put<AuthController>(AuthController());
+
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 
                   FxText.bodySmall(
-                    "Sales Executive",
+                    "${authCont.currentUserObj['roles'][0].toUpperCase()}",
                   ),
                   FxText.bodySmall("See more",
                       decoration: TextDecoration.underline),

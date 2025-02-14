@@ -1,4 +1,4 @@
-package com.sitemaster.erp.redefine
+package com.crmbook.erp.redefine
 
 import io.flutter.embedding.android.FlutterActivity
 

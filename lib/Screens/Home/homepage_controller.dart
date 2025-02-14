@@ -100,7 +100,7 @@ class HomePageController extends GetxController {
 
   var totalTasksStreamData = [].obs;
 
-  var myLeadStatusCategory = 'followup'.obs;
+  var myLeadStatusCategory = 'booked'.obs;
 
 
   var currentUser;
@@ -165,7 +165,7 @@ class HomePageController extends GetxController {
 
   flipMode(title) {
     print('am here ${title}');
-    if (title == 'Leads') {
+    if (title == 'Units') {
       businessMode.value = true;
       setTaskTypeFun('followup');
     } else {
