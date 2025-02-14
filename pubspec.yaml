@@ -70,12 +70,12 @@ dependencies:
   workmanager: ^0.5.2
 
 dev_dependencies:
-  flutter_lints: ^2.0.0
-  flutter_local_notifications: ^13.0.0
-  flutter_launcher_icons: ^0.12.0
+  flutter_lints: ^5.0.0
+  flutter_local_notifications: ^18.0.1
+  flutter_launcher_icons: ^0.14.3
   flutter_test:
     sdk: flutter
-  timeago: ^3.3.0
+  timeago: ^3.7.0
 
 flutter_icons:
   android: "launcher_icon"
